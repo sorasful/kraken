@@ -1,7 +1,9 @@
-from urllib.parse import urlparse
+import os
+import logging
+from urllib.parse import urlparse, urljoin
 
-import requests
 from lxml import html
+import requests
 
 
 def get_domain_name(url):
@@ -21,9 +23,12 @@ def get_domain_name(url):
     return netloc or path.split('/')[0]
 
 
-def get_page_content(url):
+def get_page(url):
+    if url.startswith('/'):
+        url = 'https:/' + url
+    logging.debug(f'Getting page : {url}')
     response = requests.get(url)
-    return response.content
+    return response
 
 
 def find_links(page_content):
@@ -55,6 +60,31 @@ def is_external_link(url, link):
     False
     """
     return (get_domain_name(url) != get_domain_name(link)) and not link.startswith('/')
+
+
+def get_folders_structure(url):
+    """
+    Get a url and return a string of folders to create.
+    >>> get_folders_structure('http://mysite.com/articles/css/lol.html')
+    'articles/css/'
+    >>> get_folders_structure('/articles/css/lol.html')
+    'articles/css/'
+    >>> get_folders_structure('mysite.fr/lol.html')
+    ''
+    >>> get_folders_structure('https://mysite.fr/')
+    ''
+    >>> get_folders_structure('https://mysite.fr/articles/etoile-args-kwargs/')
+    'articles/etoile-args-kwargs/'
+    """
+    # split the path by '/' and ignore the last entry which is the filename
+    path = urlparse(url)[2]
+    if path == '/':
+        return ''
+    folders = path.rsplit('/', 1)[0] + '/'
+    # FIXME : May not work everytime ... if there is a point, chances are that this is the domain and not folder names
+    if "." in folders:
+        return ''
+    return folders[1:]
 
 
 def download_file(link):
