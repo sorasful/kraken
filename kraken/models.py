@@ -1,7 +1,8 @@
 import datetime
 import os
-
 from urllib.parse import urlparse
+
+import kraken.utils as utils
 
 
 class Scraper:
@@ -28,7 +29,7 @@ class Scraper:
         """
         now_str = datetime.datetime.strftime(datetime.datetime.now(), '%d_%m_%y_%H_%M')
         # replace beginning and slashes to allow creating good folder names
-        address = urlparse(self.website.url)[1]
+        address = utils.get_domain_name(self.website.url)
         name = f'{address}_{now_str}'
 
         os.mkdir(name)
