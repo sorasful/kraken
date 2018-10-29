@@ -18,6 +18,9 @@ Installation
 
 Run it
 --------------
+```python
+python kraken/main.py
+```
 
 
 Run with Docker

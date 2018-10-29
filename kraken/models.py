@@ -41,7 +41,6 @@ class Scraper:
             # TODO: remove not empty directory
             os.rmdir(dir_name)
         os.mkdir(dir_name)
-        logging.debug(f'Created save directory : {dir_name}')
         return dir_name
 
     def has_already_scraped(self, link):
@@ -60,7 +59,6 @@ class Scraper:
         return self.website.to_visit[-1]
 
     def treat_url(self, url):
-        # TODO : if it's a file, download it if download_file is True
         logging.debug(f'Treating url : {url}')
         url = self.get_absolute_link(url)
         page = utils.get_page(url)
@@ -70,8 +68,8 @@ class Scraper:
         if not self.download_external:
             new_links = [self.get_absolute_link(link) for link in new_links if not utils.is_external_link(url, link)]
         self.website.to_visit.extend(new_links)
-        self._save_page(page)
 
+        self._save_page(page)
         if url in self.website.to_visit:
             self.website.to_visit.remove(url)
         self.website.pages_visited.append(url)
@@ -82,11 +80,17 @@ class Scraper:
 
         folders = utils.get_folders_structure(page.url)
         print(f'folders :{folders}')
-        filename = page.url.rsplit('/', 1)[-1] or 'index.html'
+        name = page.url.rsplit('/', 1)[-1]
+        filename = name + '.html' if name and "." not in name else name or 'index.html'
         filepath = os.path.join(self.save_directory, folders, filename)
 
-        with open(f'{filepath}', 'wb') as file:
-            file.write(page.content)
+        if filename.split('.')[-1] in ['png', 'jpg', 'jpeg', 'avi', 'pdf']:
+            with open(f'{filepath}', 'wb') as file:
+                file.write(page.content)
+        else:
+            with open(f'{filepath}', 'w') as file:
+                page_content = utils.replace_aboslute_link_with_relative(page.text)
+                file.write(page_content)
 
     def create_multi_folders_using_url(self, url):
         """ Method used to create directories to store the webpage."""

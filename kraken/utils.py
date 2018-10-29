@@ -1,5 +1,6 @@
 import os
 import logging
+import re
 from urllib.parse import urlparse, urljoin
 
 from lxml import html
@@ -42,8 +43,12 @@ def find_links(page_content):
     >>> find_links('<html><p>Broken html ! </pl>')
     []
     """
-    page = html.fromstring(page_content)
-    return page.xpath('//img/@src|//a/@href')
+    try:
+        page = html.fromstring(page_content)
+        return page.xpath('//img/@src|//a/@href|//link/@href|//script/@src')
+    except Exception as e:
+        logging.error(f'Error finding links : {e}')
+        return []
 
 
 def is_external_link(url, link):
@@ -87,8 +92,13 @@ def get_folders_structure(url):
     return folders[1:]
 
 
-def download_file(link):
-    pass
+def replace_aboslute_link_with_relative(page_content):
+    """
+    Function which deletes the first slash '/' in the files to use files from the current directory.
+    :param page_content:
+    :return:
+    """
+    return re.sub('"\/', '"', page_content)
 
 
 if __name__ == '__main__':
