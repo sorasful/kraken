@@ -64,6 +64,7 @@ class Scraper:
         logging.debug(f'Treating url : {url}')
         url = self.get_absolute_link(url)
         page = utils.get_page(url)
+
         # links that have not been treated nor are already in the to visit list
         new_links = [self.get_absolute_link(link)for link in utils.find_links(page.content) if not self.has_already_scraped(self.get_absolute_link(link))]
         if not self.download_external:
@@ -74,28 +75,25 @@ class Scraper:
         if url in self.website.to_visit:
             self.website.to_visit.remove(url)
         self.website.pages_visited.append(url)
-        print(self.website.pages_visited)
-        print(self.website.to_visit)
 
     def _save_page(self, page):
         logging.debug(f'_save_page for url : {page.url}')
-        # create folders if needed and file with url
-        # save the content of the page.content with the name of the file
-        folders = self.create_multi_folders_using_url(page.url)
+        self.create_multi_folders_using_url(page.url)
+
+        folders = utils.get_folders_structure(page.url)
+        print(f'folders :{folders}')
         filename = page.url.rsplit('/', 1)[-1] or 'index.html'
         filepath = os.path.join(self.save_directory, folders, filename)
 
-        with open(f'{filepath}', 'w') as file:
-            file.write(page.text)
+        with open(f'{filepath}', 'wb') as file:
+            file.write(page.content)
 
     def create_multi_folders_using_url(self, url):
         """ Method used to create directories to store the webpage."""
         folders = utils.get_folders_structure(url)
         folder_path = os.path.join(self.save_directory, folders)
-        if os.path.exists(folder_path):
-            return ''
-        os.makedirs(folder_path)
-        return folders
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
 
     def get_absolute_link(self, link):
         if link.startswith('/'):
@@ -122,6 +120,8 @@ class Website:
         'https://github.com'
         >>> Website._get_base_url('http://localhost:8000/admin')
         'http://localhost:8000'
+        >>> Website._get_base_url('mysite.fr')
+        'https//mysite.fr'
         """
         scheme, address, *_ = urlparse(url)
         return f'{scheme}://{address}'

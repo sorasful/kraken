@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from kraken.models import Scraper, Website
 
@@ -12,4 +13,4 @@ if __name__ == '__main__':
     website = Website('https://lafleche.io')
     scraper = Scraper(website)
     scraper.start()
-    print('Ended !')
+    sys.exit(0)

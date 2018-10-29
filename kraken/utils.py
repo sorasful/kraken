@@ -43,7 +43,7 @@ def find_links(page_content):
     []
     """
     page = html.fromstring(page_content)
-    return page.xpath('//a/@href')
+    return page.xpath('//img/@src|//a/@href')
 
 
 def is_external_link(url, link):
